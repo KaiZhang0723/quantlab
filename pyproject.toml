@@ -83,7 +83,9 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
-ignore = ["E501"]
+# N803/N806: scikit-learn conventions (uppercase X for design matrix, C for
+# inverse regularisation strength).
+ignore = ["E501", "N803", "N806"]
 
 [tool.mypy]
 python_version = "3.10"

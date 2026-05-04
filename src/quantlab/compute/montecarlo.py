@@ -8,9 +8,9 @@ prof flagged in Ed forum #66.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from multiprocessing import Pool
-from typing import Sequence
 
 import numpy as np
 

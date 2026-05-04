@@ -7,8 +7,8 @@ brittleness of scraping a JavaScript-heavy site.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Optional
 
 import pandas as pd
 import requests
@@ -50,7 +50,7 @@ class WikipediaConstituents:
             local fixture so CI never hits the network.
     """
 
-    def __init__(self, fetcher: Optional[Fetcher] = None) -> None:
+    def __init__(self, fetcher: Fetcher | None = None) -> None:
         self._fetcher = fetcher or _default_fetcher
 
     def fetch(self, url: str = WIKI_SP500_URL) -> pd.DataFrame:

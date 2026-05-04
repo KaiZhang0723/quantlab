@@ -11,11 +11,10 @@ source of truth.
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Iterator
 
 import pandas as pd
-
 
 PRICE_TABLE = "prices"
 
@@ -37,7 +36,7 @@ class SQLAnalytics:
         self._conn = sqlite3.connect(":memory:")
         self._load(prices)
 
-    def __enter__(self) -> "SQLAnalytics":
+    def __enter__(self) -> SQLAnalytics:
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:

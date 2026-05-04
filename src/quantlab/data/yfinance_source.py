@@ -7,8 +7,8 @@ deterministic.
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable
 from datetime import date
-from typing import Callable, Iterable, Optional
 
 import pandas as pd
 
@@ -42,7 +42,7 @@ class YFinanceSource(PriceSource):
         True
     """
 
-    def __init__(self, downloader: Optional[Downloader] = None, auto_adjust: bool = False) -> None:
+    def __init__(self, downloader: Downloader | None = None, auto_adjust: bool = False) -> None:
         self._downloader = downloader or _default_downloader()
         self._auto_adjust = auto_adjust
 

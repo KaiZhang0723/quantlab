@@ -1,6 +1,6 @@
 # quantlab
 
-[![CI](https://github.com/kzhang-cornell/quantlab/actions/workflows/ci.yml/badge.svg)](./.github/workflows/ci.yml)
+[![CI](https://github.com/KaiZhang0723/quantlab/actions/workflows/ci.yml/badge.svg)](./.github/workflows/ci.yml)
 ![coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)
 ![python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
@@ -27,7 +27,13 @@ Run on a 6-year synthetic GBM panel with realistic per-ticker drift / volatility
 | AAPL one-day 99 % VaR (historical simulation) | **2.59 %** |
 | AAPL perfect-foresight per-share profit (DP, fee = 0.1 %) | **$727.91** |
 
-Charts: [`reports/cumulative_returns.png`](reports/cumulative_returns.png), [`reports/drawdown.png`](reports/drawdown.png), [`reports/correlation_heatmap.png`](reports/correlation_heatmap.png). The same numbers live in machine-readable form in [`reports/summary.json`](reports/summary.json).
+![Cumulative returns of the equal-weight 12-1 momentum portfolio](reports/cumulative_returns.png)
+
+| Drawdown (underwater) | Daily-return correlations |
+| :---: | :---: |
+| ![Portfolio drawdown](reports/drawdown.png) | ![Return correlations](reports/correlation_heatmap.png) |
+
+All numbers also live in machine-readable form at [`reports/summary.json`](reports/summary.json), and the strategy metrics per ticker at [`reports/backtest_metrics.csv`](reports/backtest_metrics.csv).
 
 > **Honest framing.** The professor explicitly graded on engineering, not on returns. We report cross-validated metrics as a *workflow correctness* check, not as a claim that any strategy here is tradable.
 
@@ -92,7 +98,7 @@ This package is for educational and research use only. `yfinance` is not affilia
 Requires Python 3.10 or newer.
 
 ```bash
-git clone https://github.com/kzhang-cornell/quantlab.git
+git clone https://github.com/KaiZhang0723/quantlab.git
 cd quantlab
 pip install -e ".[dev,docs]"
 ```

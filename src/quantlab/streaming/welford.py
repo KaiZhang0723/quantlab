@@ -7,8 +7,8 @@ estimator on tick data.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from quantlab.exceptions import InsufficientHistoryError
 
@@ -64,7 +64,7 @@ class OnlineMoments:
     def std(self) -> float:
         return self.variance**0.5
 
-    def merge(self, other: "OnlineMoments") -> "OnlineMoments":
+    def merge(self, other: OnlineMoments) -> OnlineMoments:
         """Combine two estimators (Chan et al. parallel formula).
 
         Useful when each worker computes partial moments and the main process

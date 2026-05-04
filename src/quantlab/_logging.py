@@ -8,13 +8,12 @@ startup to install a handler.
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 _DEFAULT_FORMAT = "%(asctime)s [%(levelname)-7s] %(name)s: %(message)s"
 _DEFAULT_DATEFMT = "%Y-%m-%d %H:%M:%S"
 
 
-def configure(level: int = logging.INFO, fmt: Optional[str] = None) -> None:
+def configure(level: int = logging.INFO, fmt: str | None = None) -> None:
     """Install a stream handler on the root logger if none is configured.
 
     Args:

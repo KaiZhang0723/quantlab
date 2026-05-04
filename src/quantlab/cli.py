@@ -16,11 +16,10 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Sequence
 from datetime import date
 from pathlib import Path
-from typing import Optional, Sequence
 
-import numpy as np
 import pandas as pd
 import yaml
 
@@ -38,7 +37,7 @@ from quantlab.models.forecaster import ReturnForecaster
 log = get_logger("quantlab.cli")
 
 
-def load_config(path: Optional[Path]) -> dict:
+def load_config(path: Path | None) -> dict:
     if path is None:
         return {}
     if not path.exists():
@@ -110,7 +109,10 @@ def _cmd_fetch(args: argparse.Namespace, cfg: dict) -> int:
 
 def _cmd_backtest(args: argparse.Namespace, _cfg: dict) -> int:
     prices = _load_prices(args.prices)
-    strategy = lambda df: momentum_strategy(df, lookback=args.lookback, skip=args.skip)
+
+    def strategy(df):
+        return momentum_strategy(df, lookback=args.lookback, skip=args.skip)
+
     result = run_backtest(prices, strategy=strategy, n_workers=args.workers)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     result.metrics_table().to_csv(args.out, index=False)
@@ -171,7 +173,7 @@ _COMMANDS = {
 }
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
     configure(level=args.log_level)

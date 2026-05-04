@@ -9,7 +9,6 @@ target (next-day log return) and a classification target (next-day direction).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -59,8 +58,8 @@ class ReturnForecaster:
         self.n_splits = n_splits
         self.alpha = alpha
         self.C = C
-        self.pipeline_: Optional[Pipeline] = None
-        self.feature_cols_: Optional[list[str]] = None
+        self.pipeline_: Pipeline | None = None
+        self.feature_cols_: list[str] | None = None
 
     def _make_pipeline(self) -> Pipeline:
         if self.task == "regression":

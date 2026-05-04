@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.figure import Figure
@@ -14,7 +12,7 @@ from quantlab.compute.rolling import drawdown_series
 def plot_drawdown(
     equity: pd.Series,
     title: str = "Drawdown",
-    ax: Optional[plt.Axes] = None,
+    ax: plt.Axes | None = None,
 ) -> Figure:
     """Shade the drawdown of an equity curve.
 

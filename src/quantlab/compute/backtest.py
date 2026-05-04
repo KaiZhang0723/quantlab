@@ -8,9 +8,9 @@ backtester applies one strategy per ticker in parallel via
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from multiprocessing import Pool
-from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
@@ -95,7 +95,7 @@ def _backtest_one(args: tuple[str, pd.DataFrame, Strategy]) -> TickerPnL:
 
 def run_backtest(
     prices: pd.DataFrame,
-    strategy: Optional[Strategy] = None,
+    strategy: Strategy | None = None,
     n_workers: int = 1,
 ) -> BacktestResult:
     """Run a per-ticker backtest in parallel.

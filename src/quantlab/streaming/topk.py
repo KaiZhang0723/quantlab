@@ -8,7 +8,8 @@ daily price file.
 from __future__ import annotations
 
 import heapq
-from typing import Generic, Iterable, TypeVar
+from collections.abc import Iterable
+from typing import Generic, TypeVar
 
 T = TypeVar("T")
 

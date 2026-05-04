@@ -8,9 +8,9 @@ simplified for the file-system case (one CSV per ticker).
 from __future__ import annotations
 
 import time
+from collections.abc import Iterable
 from datetime import date
 from pathlib import Path
-from typing import Iterable, Optional
 
 import pandas as pd
 
@@ -33,7 +33,7 @@ class CSVCache(PriceSource):
         ttl_seconds: Cache lifetime per ticker. ``None`` disables expiry.
     """
 
-    def __init__(self, upstream: PriceSource, root: Path, ttl_seconds: Optional[int] = 24 * 3600) -> None:
+    def __init__(self, upstream: PriceSource, root: Path, ttl_seconds: int | None = 24 * 3600) -> None:
         self._upstream = upstream
         self._root = Path(root)
         self._ttl = ttl_seconds

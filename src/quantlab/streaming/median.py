@@ -7,7 +7,7 @@ Maintains a max-heap of the lower half and a min-heap of the upper half.
 from __future__ import annotations
 
 import heapq
-from typing import Iterable
+from collections.abc import Iterable
 
 from quantlab.exceptions import InsufficientHistoryError
 

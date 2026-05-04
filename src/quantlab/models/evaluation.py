@@ -6,7 +6,7 @@ helper that mirrors HW5's group-wise evaluation pattern.
 
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
@@ -35,10 +35,7 @@ def classification_metrics(y_true: pd.Series, p_pos: pd.Series) -> dict[str, flo
     """ROC AUC and accuracy at a 0.5 threshold."""
     if len(y_true) != len(p_pos):
         raise ValueError("y_true and p_pos length mismatch")
-    if y_true.nunique() < 2:
-        auc = float("nan")
-    else:
-        auc = float(roc_auc_score(y_true, p_pos))
+    auc = float("nan") if y_true.nunique() < 2 else float(roc_auc_score(y_true, p_pos))
     acc = float(accuracy_score(y_true, (p_pos > 0.5).astype(int)))
     return {"auc": auc, "accuracy": acc}
 

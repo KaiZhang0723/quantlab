@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
@@ -13,7 +11,7 @@ from matplotlib.figure import Figure
 def plot_correlation_heatmap(
     returns: pd.DataFrame,
     title: str = "Return correlations",
-    ax: Optional[plt.Axes] = None,
+    ax: plt.Axes | None = None,
 ) -> Figure:
     """Plot the pairwise return correlation matrix as a heatmap.
 

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.figure import Figure
@@ -12,7 +10,7 @@ from matplotlib.figure import Figure
 def plot_cumulative_returns(
     equity: pd.Series | pd.DataFrame,
     title: str = "Cumulative returns",
-    ax: Optional[plt.Axes] = None,
+    ax: plt.Axes | None = None,
 ) -> Figure:
     """Plot one or more equity curves on a log-y axis.
 
