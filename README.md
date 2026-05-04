@@ -35,7 +35,7 @@ Run on a 6-year synthetic GBM panel with realistic per-ticker drift / volatility
 
 All numbers also live in machine-readable form at [`reports/summary.json`](reports/summary.json), and the strategy metrics per ticker at [`reports/backtest_metrics.csv`](reports/backtest_metrics.csv).
 
-> **Honest framing.** The professor explicitly graded on engineering, not on returns. We report cross-validated metrics as a *workflow correctness* check, not as a claim that any strategy here is tradable.
+> **Note:** The project is graded on engineering, not on returns. We report cross-validated metrics as a *workflow correctness* check, not as a claim that any strategy here is tradable.
 
 ---
 
