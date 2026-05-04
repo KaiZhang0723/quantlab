@@ -1,0 +1,31 @@
+{
+  "n_tickers": 10,
+  "n_dates": 1500,
+  "portfolio": {
+    "sharpe": 0.5260242061752105,
+    "annual_return": 0.08955647081830266,
+    "annual_vol": 0.15266789441951276,
+    "max_drawdown": -0.2905050599468047
+  },
+  "aapl_forecast": {
+    "task": "classification",
+    "cv_auc_mean": 0.501978116350522,
+    "in_sample": {
+      "auc": 0.546198296669764,
+      "accuracy": 0.5453315290933695
+    }
+  },
+  "aapl_var_99": {
+    "monte_carlo": {
+      "var": 0.07673820354310792,
+      "cvar": 0.08662400987451349,
+      "n_paths": 20000
+    },
+    "historical": {
+      "var": 0.02594030891930316,
+      "cvar": 0.02956116378049903,
+      "n_paths": 1499
+    }
+  },
+  "aapl_perfect_foresight_profit_per_share_with_fee_0.001": 727.9078245539728
+}
