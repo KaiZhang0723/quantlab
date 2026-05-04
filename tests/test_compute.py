@@ -27,6 +27,7 @@ from quantlab.compute.rolling import (
     rolling_volatility,
 )
 from quantlab.compute.sector_aggregate_mr import (
+    MRJOB_AVAILABLE,
     SectorVolumeMR,
     emit_csv,
     run_inline,
@@ -199,18 +200,21 @@ class SectorAggregateMRTests(unittest.TestCase):
         self.assertAlmostEqual(out["Tech"], 1500.0)
         self.assertAlmostEqual(out["Finance"], 750.0)
 
+    @unittest.skipUnless(MRJOB_AVAILABLE, "mrjob unavailable on this Python version")
     def test_mapper_emits_correct_kv(self) -> None:
         # Pass empty args explicitly so MRJob doesn't read pytest's sys.argv.
         job = SectorVolumeMR(args=[])
         out = list(job.mapper_emit_sector_volume(None, "2024-01-02,AAPL,Tech,1000"))
         self.assertEqual(out, [("Tech", 1000.0)])
 
+    @unittest.skipUnless(MRJOB_AVAILABLE, "mrjob unavailable on this Python version")
     def test_mapper_skips_header_and_garbage(self) -> None:
         job = SectorVolumeMR(args=[])
         self.assertEqual(list(job.mapper_emit_sector_volume(None, "date,ticker,sector,volume")), [])
         self.assertEqual(list(job.mapper_emit_sector_volume(None, "")), [])
         self.assertEqual(list(job.mapper_emit_sector_volume(None, "bad,row")), [])
 
+    @unittest.skipUnless(MRJOB_AVAILABLE, "mrjob unavailable on this Python version")
     def test_reducer_sums(self) -> None:
         job = SectorVolumeMR(args=[])
         out = list(job.reducer_sum_volume("Tech", iter([1.0, 2.0, 3.0])))

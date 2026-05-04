@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/KaiZhang0723/quantlab/actions/workflows/ci.yml/badge.svg)](./.github/workflows/ci.yml)
 ![coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)
-![python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)
+![python](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
 
 > A reproducible equity-analysis pipeline for Yahoo Finance data: streaming and rolling risk metrics, parallel backtests, parametric and historical VaR, and benchmark scikit-learn forecasts packaged for testability.

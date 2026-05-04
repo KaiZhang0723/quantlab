@@ -48,6 +48,16 @@ effects (filesystem I/O, multiprocessing pools, RNG seeding) are confined
 to a thin shell of code in ``cli.py`` and ``cache.py``. This keeps test
 coverage cheap and reasoning local.
 
+Python version support
+----------------------
+
+CI runs on Python 3.10 and 3.11. The W9 MapReduce library ``mrjob`` still
+imports the standard-library ``distutils`` module, which `PEP 632
+<https://peps.python.org/pep-0632/>`_ removed in Python 3.12. The rest of
+the package works fine on 3.12; we simply guard the ``mrjob`` import with a
+``try``/``except`` and skip the MRJob-class unit tests when the dependency
+is unavailable.
+
 Topics intentionally not covered
 --------------------------------
 

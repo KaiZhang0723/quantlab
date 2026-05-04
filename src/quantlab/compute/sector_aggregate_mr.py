@@ -18,14 +18,22 @@ import io
 from collections import defaultdict
 from collections.abc import Iterable
 
-from mrjob.job import MRJob
-from mrjob.step import MRStep
+# mrjob still imports the removed ``distutils`` module on Python 3.12+.
+# Treat it as an optional dependency so the rest of the package stays usable.
+try:
+    from mrjob.job import MRJob
+    from mrjob.step import MRStep
+    MRJOB_AVAILABLE = True
+except ImportError:  # pragma: no cover
+    MRJOB_AVAILABLE = False
+    MRJob = object  # type: ignore[assignment, misc]
+    MRStep = None  # type: ignore[assignment]
 
 
 class SectorVolumeMR(MRJob):
     """MapReduce job summing daily trading volume per sector."""
 
-    def steps(self) -> list[MRStep]:
+    def steps(self) -> list[MRStep]:  # type: ignore[name-defined]
         return [MRStep(mapper=self.mapper_emit_sector_volume,
                        reducer=self.reducer_sum_volume)]
 
