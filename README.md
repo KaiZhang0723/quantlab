@@ -15,17 +15,18 @@ This is the final-project deliverable for **ORIE 5270 — Big Data Technologies 
 
 > *Does an equal-weight 12-1 momentum strategy on a basket of large-cap U.S. equities deliver positive risk-adjusted returns?*
 
-Run on a 6-year synthetic GBM panel with realistic per-ticker drift / volatility, 10 tickers, 1500 trading days. Real Yahoo Finance data can be substituted by replacing `synthetic_panel(...)` with `CSVCache(YFinanceSource()).fetch(...)` in `scripts/generate_reports.py`.
+Run on **real Yahoo Finance daily prices**, 10 large-cap tickers (AAPL, MSFT, GOOGL, AMZN, NVDA, JPM, XOM, JNJ, PG, WMT) over **2019-01-02 → 2024-12-30** (1,509 trading days, 15,090 rows). Reproduce with `python scripts/generate_reports.py --fetch`; the script falls back to a deterministic synthetic GBM panel when offline so tests and CI stay network-free.
 
 | Metric | Value |
 | --- | ---: |
-| Average per-ticker Sharpe | **0.53** |
-| Average annualised return | **8.96 %** |
-| Average annualised volatility | **15.27 %** |
-| Average maximum drawdown | **−29.05 %** |
-| AAPL one-day 99 % VaR (Monte Carlo, 20k paths, 10-day horizon) | **7.67 %** |
-| AAPL one-day 99 % VaR (historical simulation) | **2.59 %** |
-| AAPL perfect-foresight per-share profit (DP, fee = 0.1 %) | **$727.91** |
+| Average per-ticker Sharpe | **0.41** |
+| Average annualised return | **11.96 %** |
+| Average annualised volatility | **24.07 %** |
+| Average maximum drawdown | **−34.28 %** |
+| AAPL 10-day 99 % VaR (Monte Carlo, 20k paths) | **12.42 %** |
+| AAPL 10-day 99 % VaR (historical simulation) | **5.30 %** |
+| AAPL perfect-foresight per-share profit (DP, fee = 0.1 %) | **$1,441.69** |
+| Best per-ticker Sharpe in panel (NVDA) | **1.05** |
 
 ![Cumulative returns of the equal-weight 12-1 momentum portfolio](reports/cumulative_returns.png)
 

@@ -1,31 +1,36 @@
 {
+  "data_source": "loaded from /Users/k/Library/Mobile Documents/com~apple~CloudDocs/Cornell/Spring 2026/ORIE 5270 Big Data Technologies/quantlab/reports/sample_prices.csv",
   "n_tickers": 10,
-  "n_dates": 1500,
+  "n_dates": 1509,
+  "date_range": [
+    "2019-01-02 00:00:00",
+    "2024-12-30 00:00:00"
+  ],
   "portfolio": {
-    "sharpe": 0.5260242061752105,
-    "annual_return": 0.08955647081830266,
-    "annual_vol": 0.15266789441951276,
-    "max_drawdown": -0.2905050599468047
+    "sharpe": 0.4093090380916409,
+    "annual_return": 0.11955592279144685,
+    "annual_vol": 0.24070057780142054,
+    "max_drawdown": -0.34278687625361
   },
   "aapl_forecast": {
     "task": "classification",
-    "cv_auc_mean": 0.501978116350522,
+    "cv_auc_mean": 0.4840323941487023,
     "in_sample": {
-      "auc": 0.546198296669764,
-      "accuracy": 0.5453315290933695
+      "auc": 0.5433642171942407,
+      "accuracy": 0.5440484196368527
     }
   },
   "aapl_var_99": {
     "monte_carlo": {
-      "var": 0.07673820354310792,
-      "cvar": 0.08662400987451349,
+      "var": 0.12421666394894759,
+      "cvar": 0.14066555411797432,
       "n_paths": 20000
     },
     "historical": {
-      "var": 0.02594030891930316,
-      "cvar": 0.02956116378049903,
-      "n_paths": 1499
+      "var": 0.05303267002138031,
+      "cvar": 0.07311023994868177,
+      "n_paths": 1508
     }
   },
-  "aapl_perfect_foresight_profit_per_share_with_fee_0.001": 727.9078245539728
+  "aapl_perfect_foresight_profit_per_share_with_fee_0.001": 1441.6913114013735
 }
