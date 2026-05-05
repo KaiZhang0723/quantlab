@@ -74,7 +74,7 @@ quantlab is a small, well-tested Python package that takes raw Yahoo Finance equ
 
 * a clean, deduplicated, schema-validated long-format price panel (with on-disk CSV caching);
 * per-ticker streaming and rolling risk statistics;
-* a parallel cross-sectional momentum backtester;
+* a parallel per-ticker time-series momentum backtester;
 * parametric (Monte Carlo) and non-parametric (historical) Value-at-Risk and CVaR;
 * a baseline scikit-learn next-day return / direction forecaster with time-aware cross-validation;
 * a Markowitz mean-variance portfolio constructor;

@@ -87,6 +87,20 @@ class YFinanceSourceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             src.fetch([], date(2024, 1, 1), date(2024, 1, 31))
 
+    def test_rejects_single_index_response_for_multi_ticker_request(self) -> None:
+        # yfinance occasionally returns a flat-column frame when only one of
+        # the requested tickers survives. We refuse to guess which one.
+        idx = pd.bdate_range("2024-01-02", periods=5)
+        flat = pd.DataFrame(
+            np.random.default_rng(0).normal(loc=100, scale=1, size=(5, 6)),
+            index=idx,
+            columns=["Open", "High", "Low", "Close", "Adj Close", "Volume"],
+        )
+        flat.index.name = "Date"
+        src = YFinanceSource(downloader=lambda **kw: flat)
+        with self.assertRaises(MissingPriceDataError):
+            src.fetch(["AAA", "BBB", "CCC"], date(2024, 1, 1), date(2024, 1, 31))
+
 
 class WikipediaConstituentsTests(unittest.TestCase):
     def test_parse_extracts_rows(self) -> None:

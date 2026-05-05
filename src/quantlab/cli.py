@@ -216,7 +216,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         cfg = load_config(args.config)
         handler = _COMMANDS.get(args.command)
         if handler is None:
-            parser.error(f"unknown command {args.command}")
+            # Practically unreachable given argparse's ``required=True``,
+            # but raising lets the surrounding try/except convert this to
+            # the package's standard exit code 2 instead of argparse's
+            # direct ``sys.exit``.
+            raise ConfigError(f"unknown command {args.command}")
         return handler(args, cfg)
     except QuantLabError as exc:
         log.error("quantlab error: %s", exc)

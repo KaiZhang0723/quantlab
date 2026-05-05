@@ -83,6 +83,15 @@ class YFinanceSource(PriceSource):
                 sub["ticker"] = tkr
                 frames.append(sub)
         else:
+            # A flat-column response only makes sense when a single ticker
+            # was requested. If multiple were requested, yfinance has
+            # silently dropped some, and we cannot tell which ticker the
+            # surviving frame belongs to. Refuse to guess.
+            if len(tickers) > 1:
+                raise MissingPriceDataError(
+                    f"yfinance returned a flat-column frame for {len(tickers)} "
+                    f"requested tickers; some tickers may have failed silently"
+                )
             sub = raw.copy()
             sub["ticker"] = tickers[0]
             frames.append(sub)
