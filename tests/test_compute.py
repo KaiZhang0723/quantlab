@@ -41,10 +41,17 @@ class RollingTests(unittest.TestCase):
         rets = log_returns(prices)
         self.assertEqual(len(rets), 2)
         self.assertAlmostEqual(rets.iloc[0], np.log(1.1))
+        self.assertAlmostEqual(rets.iloc[1], np.log(121.0 / 110.0))
 
     def test_log_returns_requires_two(self) -> None:
         with self.assertRaises(InsufficientHistoryError):
             log_returns(pd.Series([100.0]))
+
+    def test_log_returns_rejects_nonpositive(self) -> None:
+        with self.assertRaises(ValueError):
+            log_returns(pd.Series([100.0, 0.0, 1.0]))
+        with self.assertRaises(ValueError):
+            log_returns(pd.Series([100.0, -5.0, 1.0]))
 
     def test_cumulative_returns(self) -> None:
         rets = pd.Series([0.0, 0.1, -0.05])
@@ -153,10 +160,26 @@ class MonteCarloTests(unittest.TestCase):
         rets = rng.normal(0, 0.01, 5_000)
         res = historical_simulation(rets, confidence=0.95)
         self.assertGreater(res.var, 0)
+        self.assertEqual(res.horizon_days, 1)
 
     def test_historical_simulation_too_few(self) -> None:
         with self.assertRaises(InsufficientHistoryError):
             historical_simulation([0.01])
+
+    def test_historical_simulation_horizon_aggregates_returns(self) -> None:
+        # 10-day VaR should be roughly sqrt(10) larger than 1-day VaR for
+        # iid returns (square-root scaling).
+        rng = np.random.default_rng(0)
+        rets = rng.normal(0, 0.01, 10_000)
+        one_day = historical_simulation(rets, confidence=0.99, horizon_days=1)
+        ten_day = historical_simulation(rets, confidence=0.99, horizon_days=10)
+        self.assertEqual(ten_day.horizon_days, 10)
+        ratio = ten_day.var / one_day.var
+        self.assertAlmostEqual(ratio, np.sqrt(10), delta=0.5)
+
+    def test_historical_simulation_invalid_horizon(self) -> None:
+        with self.assertRaises(ValueError):
+            historical_simulation([0.01, 0.02, 0.03], horizon_days=0)
 
 
 class BacktestTests(unittest.TestCase):
@@ -187,6 +210,50 @@ class BacktestTests(unittest.TestCase):
         df = pd.DataFrame({"close": [1.0, 2.0]}, index=pd.date_range("2024-01-01", periods=2))
         with self.assertRaises(InsufficientHistoryError):
             _backtest_one(("X", df, momentum_strategy))
+
+    def test_backtest_pnl_math_matches_hand_computation(self) -> None:
+        # Five-day price path: 100, 101, 99, 105, 102.
+        # Strategy = always long (position = 1.0). Under the no-look-ahead
+        # convention (positions.shift(1) * rets), each day's return enters PnL.
+        prices = pd.DataFrame(
+            {"close": [100.0, 101.0, 99.0, 105.0, 102.0]},
+            index=pd.date_range("2024-01-02", periods=5, freq="B"),
+        )
+
+        def always_long(df: pd.DataFrame) -> pd.Series:
+            return pd.Series(1.0, index=df.index)
+
+        res = _backtest_one(("X", prices, always_long))
+        # Expected log returns (the 4 inter-day moves):
+        expected_logrets = np.log([101 / 100, 99 / 101, 105 / 99, 102 / 105])
+        # Final equity = exp(sum of expected log returns).
+        expected_equity = float(np.exp(expected_logrets.sum()))
+        self.assertAlmostEqual(float(res.equity_curve.iloc[-1]), expected_equity, places=10)
+        self.assertEqual(len(res.equity_curve), 4)
+
+    def test_backtest_lookahead_protected(self) -> None:
+        # A "cheating" strategy that knows today's close should NOT earn
+        # the absolute mean return: under the lagged-position convention,
+        # signals from day t are applied to day t+1's return, which the
+        # strategy cannot see.
+        rng = np.random.default_rng(7)
+        path = 100.0 * np.exp(np.cumsum(rng.normal(0, 0.01, 200)))
+        prices = pd.DataFrame(
+            {"close": path},
+            index=pd.date_range("2024-01-02", periods=200, freq="B"),
+        )
+
+        def perfect_foresight_today(df: pd.DataFrame) -> pd.Series:
+            # Position at t = sign of return realised at t (uses close[t]).
+            rets_today = np.log(df["close"] / df["close"].shift(1))
+            return rets_today.fillna(0).apply(lambda r: 1.0 if r > 0 else -1.0)
+
+        res = _backtest_one(("X", prices, perfect_foresight_today))
+        # If alignment were wrong (positions[t] * rets[t]), this strategy
+        # would earn the sum of |return|s — a very high Sharpe.
+        # With correct alignment (positions[t-1] * rets[t]), the cheat's
+        # signal is one day stale, so Sharpe should NOT explode to >50.
+        self.assertLess(res.sharpe, 5.0)
 
 
 class SectorAggregateMRTests(unittest.TestCase):

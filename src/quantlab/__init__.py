@@ -11,6 +11,7 @@ from __future__ import annotations
 
 __version__ = "0.1.0"
 
+from quantlab.compute.backtest import momentum_strategy, run_backtest
 from quantlab.data.cache import CSVCache
 from quantlab.data.wiki_constituents import WikipediaConstituents
 from quantlab.data.yfinance_source import YFinanceSource
@@ -36,4 +37,6 @@ __all__ = [
     "RunningMedian",
     "TopK",
     "OnlineMoments",
+    "momentum_strategy",
+    "run_backtest",
 ]

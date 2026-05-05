@@ -65,7 +65,12 @@ class ReturnForecaster:
         if self.task == "regression":
             estimator = Ridge(alpha=self.alpha)
         else:
-            estimator = LogisticRegression(C=self.C, max_iter=500, solver="lbfgs")
+            # ``class_weight='balanced'`` keeps the classifier honest on the
+            # naturally imbalanced "next-day-up" target without resorting to
+            # SMOTE (which would leak future-dated rows on a time series).
+            estimator = LogisticRegression(
+                C=self.C, max_iter=500, solver="lbfgs", class_weight="balanced",
+            )
         return Pipeline([("scaler", StandardScaler()), ("estimator", estimator)])
 
     @property

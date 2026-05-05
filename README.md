@@ -13,20 +13,22 @@ This is the final-project deliverable for **ORIE 5270 — Big Data Technologies 
 
 ## Research question and headline result
 
-> *Does an equal-weight 12-1 momentum strategy on a basket of large-cap U.S. equities deliver positive risk-adjusted returns?*
+> *Does an equal-weight per-ticker 12-1 time-series momentum strategy on a basket of large-cap U.S. equities deliver positive risk-adjusted returns?*
 
 Run on **real Yahoo Finance daily prices**, 10 large-cap tickers (AAPL, MSFT, GOOGL, AMZN, NVDA, JPM, XOM, JNJ, PG, WMT) over **2019-01-02 → 2024-12-30** (1,509 trading days, 15,090 rows). Reproduce with `python scripts/generate_reports.py --fetch`; the script falls back to a deterministic synthetic GBM panel when offline so tests and CI stay network-free.
 
 | Metric | Value |
 | --- | ---: |
-| Average per-ticker Sharpe | **0.41** |
-| Average annualised return | **11.96 %** |
-| Average annualised volatility | **24.07 %** |
-| Average maximum drawdown | **−34.28 %** |
-| AAPL 10-day 99 % VaR (Monte Carlo, 20k paths) | **12.42 %** |
-| AAPL 10-day 99 % VaR (historical simulation) | **5.30 %** |
-| AAPL perfect-foresight per-share profit (DP, fee = 0.1 %) | **$1,441.69** |
+| Average per-ticker Sharpe | **0.39** |
+| Average annualised return | **11.72 %** |
+| Average annualised volatility | **24.26 %** |
+| Average maximum drawdown | **−33.42 %** |
+| AAPL 10-day 99 % VaR — parametric Monte Carlo (20k paths) | **12.42 %** |
+| AAPL 10-day 99 % VaR — historical simulation (rolling 10-day returns) | **13.38 %** |
+| AAPL perfect-foresight per-share profit (DP, fee = $0.001/share) | **$1,441.69** |
 | Best per-ticker Sharpe in panel (NVDA) | **1.05** |
+
+Both VaR figures use the same 10-day horizon and 99 % confidence; the historical estimate is modestly higher than the parametric MC because the empirical 10-day-return distribution has fatter left-tails than the GBM fit.
 
 ![Cumulative returns of the equal-weight 12-1 momentum portfolio](reports/cumulative_returns.png)
 
@@ -61,7 +63,7 @@ All numbers also live in machine-readable form at [`reports/summary.json`](repor
                  viz/  ──►  reports/  +  examples/end_to_end.ipynb
                      │
                      ▼
-                  cli.py    (`quantlab fetch | backtest | forecast | var`)
+                  cli.py    (`quantlab fetch | backtest | forecast | var | sql`)
 ```
 
 ---
@@ -131,12 +133,15 @@ quantlab backtest --prices data/prices.csv --workers 4 \
 quantlab forecast --prices data/prices.csv --ticker AAPL \
                   --task classification --out reports/aapl_forecast.json
 
-# 4. Estimate 10-day, 99% VaR / CVaR via parallel Monte Carlo.
+# 4. Estimate 10-day, 99% VaR / CVaR — parallel Monte Carlo and historical sim.
 quantlab var --prices data/prices.csv --ticker AAPL --horizon 10 \
              --confidence 0.99 --paths 50000 --workers 4
+
+# 5. SQL window-function analytics (cross-sectional rank, rolling volume, momentum).
+quantlab sql --prices data/prices.csv --query rank --limit 10
 ```
 
-A YAML config file can supply defaults that the explicit CLI flags override:
+A YAML config file supplies the `tickers`, `start`, and `end` defaults consumed by the `fetch` subcommand:
 
 ```bash
 quantlab --config configs/default.yaml fetch --out data/prices.csv
@@ -144,11 +149,11 @@ quantlab --config configs/default.yaml fetch --out data/prices.csv
 
 ### Python API
 
+The most-used types are re-exported from the top-level package:
+
 ```python
 from datetime import date
-from quantlab.compute.backtest import run_backtest, momentum_strategy
-from quantlab.data.cache import CSVCache
-from quantlab.data.yfinance_source import YFinanceSource
+from quantlab import CSVCache, YFinanceSource, momentum_strategy, run_backtest
 
 src    = CSVCache(YFinanceSource(), root=".cache")
 prices = src.fetch(["AAPL", "MSFT"], date(2020, 1, 1), date(2024, 12, 31))
@@ -178,13 +183,14 @@ These are the trade-offs the package makes deliberately. The full long-form vers
 * **Time-aware cross-validation.** `models/forecaster.py` uses `TimeSeriesSplit`, not random K-fold. Random splits leak future information into training when applied to time-ordered data.
 * **Parallelism via `multiprocessing.Pool.map`.** Backtests and Monte Carlo VaR split work into deterministic non-empty chunks (`_split_evenly`) so the `N % n_workers != 0` edge case (Ed forum #66) is handled correctly. No locks needed because each worker writes to its own return value.
 * **Pure-functional core.** The numerical modules return new objects rather than mutating inputs. Side effects (filesystem I/O, RNG seeding, multiprocessing pools) are confined to a thin shell in `cli.py`, `cache.py`, and `scripts/generate_reports.py`.
-* **No SMOTE on time series.** The W14 lecture introduced SMOTE for imbalanced data; we deliberately *do not* use it. Synthetic samples constructed by KNN interpolation can leak future-dated rows into training, which violates causality. We rely on `class_weight` instead. (See [`docs/design_decisions.rst`](docs/design_decisions.rst) for more.)
+* **No SMOTE on time series.** The W14 lecture introduced SMOTE for imbalanced data; we deliberately *do not* use it. Synthetic samples constructed by KNN interpolation can leak future-dated rows into training, which violates causality. The classifier uses `class_weight="balanced"` instead, which keeps the cost-function correction strictly causal. (See [`docs/design_decisions.rst`](docs/design_decisions.rst) for more.)
+* **No-look-ahead backtest convention.** Positions decided at the close of day *t-1* earn the return from *t-1* to *t*. The framework lags the strategy's positions by one period before applying them to returns, so a user-supplied strategy that uses `close[t]` cannot silently cheat. A dedicated unit test (`test_backtest_lookahead_protected`) verifies this guard.
 
 ---
 
 ## Test coverage
 
-Measured by `pytest --cov=quantlab --cov-branch` on the committed test suite (109 tests, all passing offline):
+Measured by `pytest --cov=quantlab --cov-branch` on the committed test suite (118 tests, all passing offline). `cli.py` is included in the denominator; only `_logging.py` (a thin wrapper around stdlib `logging`) is omitted.
 
 | Module | Line + branch | What's exercised |
 | --- | ---: | --- |
@@ -240,6 +246,15 @@ make docs       # output: docs/_build/html/index.html
 ```
 
 ---
+
+## Known limitations
+
+- The default 12-1 momentum strategy is a pedagogical baseline, not a tradable strategy.
+- The backtester is gross-of-cost: transaction fees, slippage, borrow costs, and survivorship bias are not modelled. Transaction costs are modelled only in `compute/optimal_execution.max_profit_with_fee` (a perfect-foresight upper bound).
+- ML forecasts are reported as cross-validated workflow checks, not alpha claims.
+- Yahoo Finance results may shift if regenerated live (data revisions, splits / dividend adjustments). Results above are from a regeneration on **2026-05-04**; the committed `reports/sample_prices.csv` lets the prof reproduce them exactly without hitting the network.
+- `yfinance` is an unaffiliated third-party client; if Yahoo's response shape changes, the offline `--use-synthetic` path still produces a complete report.
+- Tests use deterministic synthetic panels and mocked network calls; CI never touches the public internet.
 
 ## License
 

@@ -1,18 +1,20 @@
-"""Shared pytest fixtures.
+"""Shared test helpers.
 
 We deliberately keep all randomness deterministic and avoid any network
 calls — the prof should be able to clone, ``pip install -e .[dev]``, and
 ``pytest`` without external prerequisites.
+
+Tests use ``unittest.TestCase`` style and import ``_synthetic_panel``
+directly rather than consuming pytest fixtures, since unittest's
+``TestCase`` doesn't auto-inject fixture parameters.
 """
 
 from __future__ import annotations
 
-from datetime import date
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import pytest
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -42,23 +44,3 @@ def _synthetic_panel(
             "volume": rng.integers(low=10_000, high=1_000_000, size=n_days),
         }))
     return pd.concat(frames, ignore_index=True)
-
-
-@pytest.fixture(scope="session")
-def synthetic_prices() -> pd.DataFrame:
-    return _synthetic_panel()
-
-
-@pytest.fixture(scope="session")
-def synthetic_prices_small() -> pd.DataFrame:
-    return _synthetic_panel(tickers=("AAA", "BBB"), n_days=120)
-
-
-@pytest.fixture(scope="session")
-def date_range() -> tuple[date, date]:
-    return date(2020, 1, 1), date(2024, 12, 31)
-
-
-@pytest.fixture(scope="session")
-def wiki_html_fixture() -> str:
-    return (FIXTURES / "wiki_sp500_sample.html").read_text(encoding="utf-8")

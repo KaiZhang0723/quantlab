@@ -40,15 +40,17 @@ def classification_metrics(y_true: pd.Series, p_pos: pd.Series) -> dict[str, flo
     return {"auc": auc, "accuracy": acc}
 
 
-def walk_forward_metrics(
+def per_group_metrics(
     y_true: pd.Series,
     y_pred: pd.Series,
     groups: Iterable,
     task: str = "regression",
 ) -> pd.DataFrame:
-    """Compute metrics within each group (e.g. by ticker or year).
+    """Compute regression / classification metrics within each group.
 
-    Mirrors HW5's ``evaluate_by_age_group`` pattern.
+    Mirrors HW5's ``evaluate_by_age_group`` pattern. Note: this is a
+    *per-group* breakdown, not a walk-forward (expanding-window) evaluation —
+    use ``TimeSeriesSplit`` for the latter.
     """
     df = pd.DataFrame({"y": y_true.values, "p": y_pred.values, "g": list(groups)})
     rows = []

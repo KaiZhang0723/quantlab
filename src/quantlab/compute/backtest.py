@@ -64,10 +64,11 @@ class BacktestResult:
 
 
 def momentum_strategy(prices: pd.DataFrame, lookback: int = 252, skip: int = 21) -> pd.Series:
-    """Cross-sectional 12-1 momentum (long when prior 12m ex-1m > 0).
+    """Per-ticker 12-1 *time-series* momentum signal.
 
-    A reference strategy that uses the slide-suggested 12-1 momentum signal:
-    look back ``lookback`` trading days but skip the most recent ``skip``.
+    Long (1) when the trailing ``lookback``-day return excluding the last
+    ``skip`` days is positive; flat (0) otherwise. This is a single-asset
+    time-series signal, not a cross-sectional rank across tickers.
     """
     close = prices["close"]
     if len(close) < lookback + 1:
@@ -77,13 +78,19 @@ def momentum_strategy(prices: pd.DataFrame, lookback: int = 252, skip: int = 21)
 
 
 def _backtest_one(args: tuple[str, pd.DataFrame, Strategy]) -> TickerPnL:
+    """Compute per-ticker PnL with the no-look-ahead alignment convention.
+
+    Position decided at the close of day ``t-1`` earns the return from
+    ``t-1`` to ``t``. We therefore lag the strategy's positions by one
+    period before aligning with the daily log returns.
+    """
     ticker, prices, strategy = args
     if len(prices) < 5:
         raise InsufficientHistoryError(f"{ticker}: need >= 5 rows for backtest")
     positions = strategy(prices).reindex(prices.index).fillna(0).astype(float)
     rets = log_returns(prices["close"])
-    aligned = positions.iloc[1:].values * rets.values
-    pnl = pd.Series(aligned, index=rets.index)
+    lagged = positions.shift(1).reindex(rets.index).fillna(0)
+    pnl = lagged * rets
     equity = cumulative_returns(pnl)
     annual_return = float(pnl.mean() * TRADING_DAYS_PER_YEAR)
     annual_vol = float(pnl.std(ddof=1) * np.sqrt(TRADING_DAYS_PER_YEAR))

@@ -59,7 +59,10 @@ def mean_variance_optimal(
         return 2 * cov @ w - risk_aversion * mu
 
     constraints = [{"type": "eq", "fun": lambda w: np.sum(w) - 1.0}]
-    bounds = [(0.0, 1.0)] * n if long_only else [(-1.0, 1.0)] * n
+    # Long-only is bounded to [0, 1]; long-short allows up to 2x leverage
+    # in either direction, which is enough to express realistic dollar-
+    # neutral or 130/30 books while still keeping the optimisation bounded.
+    bounds = [(0.0, 1.0)] * n if long_only else [(-2.0, 2.0)] * n
     w0 = np.full(n, 1.0 / n)
 
     res = minimize(objective, w0, jac=gradient, method="SLSQP",

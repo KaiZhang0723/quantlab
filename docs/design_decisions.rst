@@ -30,6 +30,29 @@ Time-aware cross-validation
 Random splits leak future information into training, which inflates apparent
 accuracy on time-ordered data.
 
+No-look-ahead backtest convention
+---------------------------------
+
+In :func:`quantlab.compute.backtest._backtest_one`, positions are lagged by
+one period before being multiplied with returns. The convention is "the
+position decided at the close of day *t-1* earns the return from *t-1* to
+*t*". This means a user-supplied strategy that accidentally references
+``close[t]`` cannot silently profit from same-day information — by the time
+its signal is applied, one day has elapsed. ``test_backtest_lookahead_protected``
+exercises a deliberately cheating strategy and verifies that the framework's
+lag prevents it from earning unrealistic returns.
+
+Imbalanced classification without SMOTE
+---------------------------------------
+
+The W14 lecture introduced SMOTE for imbalanced classification. We
+deliberately do *not* apply it to next-day-direction prediction: SMOTE
+constructs synthetic minority samples by KNN interpolation in feature
+space, and on time-ordered data the nearest neighbours can include
+future-dated rows. That violates causality. The logistic classifier uses
+``class_weight="balanced"`` instead, which adjusts only the loss weights
+without fabricating synthetic data.
+
 Parallelism via ``multiprocessing.Pool.map``
 --------------------------------------------
 

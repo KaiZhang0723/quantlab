@@ -115,29 +115,52 @@ class WikipediaConstituentsTests(unittest.TestCase):
             WikipediaConstituents(fetcher=bad).fetch("http://example.com")
 
 
+class _CountingSource(PriceSource):
+    """Test stub that records how many times ``fetch`` is called."""
+
+    def __init__(self, dates: pd.DatetimeIndex) -> None:
+        self.calls = 0
+        self._dates = dates
+
+    def fetch(self, tickers, start, end):
+        self.calls += 1
+        rows = []
+        for t in tickers:
+            rows.append(pd.DataFrame({
+                "date": self._dates, "ticker": t, "open": 1.0, "high": 1.0,
+                "low": 1.0, "close": 1.0, "adj_close": 1.0, "volume": 100,
+            }))
+        return pd.concat(rows, ignore_index=True)
+
+
 class CSVCacheTests(unittest.TestCase):
-    def test_cache_round_trip(self, tmp_path: Path = None) -> None:
+    def test_cache_round_trip_serves_repeat_request(self) -> None:
+        # Request matches cached range exactly, so the second call is a hit.
+        import tempfile
+        ts = pd.bdate_range("2024-01-02", periods=10)
+        start, end = date(2024, 1, 2), date(2024, 1, 15)
+        with tempfile.TemporaryDirectory() as tmp:
+            src = _CountingSource(ts)
+            cache = CSVCache(src, root=Path(tmp), ttl_seconds=3600)
+            df1 = cache.fetch(["AAA", "BBB"], start, end)
+            df2 = cache.fetch(["AAA", "BBB"], start, end)
+            self.assertEqual(src.calls, 1)
+            self.assertEqual(len(df1), len(df2))
+
+    def test_cache_misses_when_request_exceeds_cached_range(self) -> None:
+        # Cached file covers Jan 2024 only; a follow-up request for the
+        # full year should NOT be a hit (B5 fix). Otherwise the user
+        # silently receives an incomplete date range.
         import tempfile
         with tempfile.TemporaryDirectory() as tmp:
-            calls = {"n": 0}
-            ts = pd.bdate_range("2024-01-02", periods=10)
-
-            class FakeSrc(PriceSource):
-                def fetch(self, tickers, start, end):
-                    calls["n"] += 1
-                    rows = []
-                    for t in tickers:
-                        rows.append(pd.DataFrame({
-                            "date": ts, "ticker": t, "open": 1.0, "high": 1.0,
-                            "low": 1.0, "close": 1.0, "adj_close": 1.0, "volume": 100,
-                        }))
-                    return pd.concat(rows, ignore_index=True)
-
-            cache = CSVCache(FakeSrc(), root=Path(tmp), ttl_seconds=3600)
-            df1 = cache.fetch(["AAA", "BBB"], date(2024, 1, 1), date(2024, 12, 31))
-            df2 = cache.fetch(["AAA", "BBB"], date(2024, 1, 1), date(2024, 12, 31))
-            self.assertEqual(1, calls["n"])  # second call served from cache
-            self.assertEqual(len(df1), len(df2))
+            narrow = pd.bdate_range("2024-01-02", periods=10)  # 10 January days
+            src = _CountingSource(narrow)
+            cache = CSVCache(src, root=Path(tmp), ttl_seconds=3600)
+            cache.fetch(["AAA"], date(2024, 1, 1), date(2024, 1, 31))
+            self.assertEqual(src.calls, 1)
+            # Now request a wider range; the cache must miss and refetch.
+            cache.fetch(["AAA"], date(2024, 1, 1), date(2024, 12, 31))
+            self.assertEqual(src.calls, 2)
 
 
 class SQLAnalyticsTests(unittest.TestCase):

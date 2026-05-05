@@ -63,21 +63,3 @@ class OnlineMoments:
     @property
     def std(self) -> float:
         return self.variance**0.5
-
-    def merge(self, other: OnlineMoments) -> OnlineMoments:
-        """Combine two estimators (Chan et al. parallel formula).
-
-        Useful when each worker computes partial moments and the main process
-        merges them — a pattern that mirrors HW3's parallel reductions.
-        """
-        if other.n == 0:
-            return self
-        if self.n == 0:
-            self.n, self._mean, self._m2 = other.n, other._mean, other._m2
-            return self
-        n = self.n + other.n
-        delta = other._mean - self._mean
-        new_mean = self._mean + delta * other.n / n
-        new_m2 = self._m2 + other._m2 + delta * delta * self.n * other.n / n
-        self.n, self._mean, self._m2 = n, new_mean, new_m2
-        return self

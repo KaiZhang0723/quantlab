@@ -6,7 +6,7 @@ Install
 
 .. code-block:: bash
 
-   git clone https://github.com/kzhang-cornell/quantlab.git
+   git clone https://github.com/KaiZhang0723/quantlab.git
    cd quantlab
    pip install -e ".[dev,docs]"
 

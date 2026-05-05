@@ -41,7 +41,7 @@ class CSVCache(PriceSource):
 
     def fetch(self, tickers: Iterable[str], start: date, end: date) -> pd.DataFrame:
         ticker_list = list(tickers)
-        cached, missing = self._partition(ticker_list)
+        cached, missing = self._partition(ticker_list, start, end)
 
         frames: list[pd.DataFrame] = []
         for tkr in cached:
@@ -63,11 +63,11 @@ class CSVCache(PriceSource):
         mask = (merged["date"] >= pd.Timestamp(start)) & (merged["date"] <= pd.Timestamp(end))
         return merged.loc[mask].sort_values(["ticker", "date"]).reset_index(drop=True)
 
-    def _partition(self, tickers: list[str]) -> tuple[list[str], list[str]]:
+    def _partition(self, tickers: list[str], start: date, end: date) -> tuple[list[str], list[str]]:
         hits, misses = [], []
         for tkr in tickers:
             path = self._path(tkr)
-            if path.exists() and not self._expired(path):
+            if path.exists() and not self._expired(path) and self._covers(path, start, end):
                 hits.append(tkr)
             else:
                 misses.append(tkr)
@@ -77,6 +77,17 @@ class CSVCache(PriceSource):
         if self._ttl is None:
             return False
         return (time.time() - path.stat().st_mtime) > self._ttl
+
+    @staticmethod
+    def _covers(path: Path, start: date, end: date) -> bool:
+        """True if the cached file's date range envelopes ``[start, end]``."""
+        try:
+            dates = pd.read_csv(path, usecols=["date"], parse_dates=["date"])["date"]
+        except Exception:
+            return False
+        if dates.empty:
+            return False
+        return dates.min() <= pd.Timestamp(start) and dates.max() >= pd.Timestamp(end)
 
     def _path(self, ticker: str) -> Path:
         return self._root / f"{ticker}.csv"

@@ -99,13 +99,34 @@ def monte_carlo_var(
                      horizon_days=horizon_days)
 
 
-def historical_simulation(returns: Sequence[float], confidence: float = 0.99) -> VaRResult:
-    """Non-parametric VaR / CVaR from an empirical return distribution."""
+def historical_simulation(
+    returns: Sequence[float],
+    confidence: float = 0.99,
+    horizon_days: int = 1,
+) -> VaRResult:
+    """Non-parametric VaR / CVaR from an empirical return distribution.
+
+    Args:
+        returns: One-period (typically daily) log returns.
+        confidence: VaR confidence level in (0, 1).
+        horizon_days: Forecast horizon. When ``> 1``, returns are aggregated
+            into ``horizon_days``-day rolling sums (correct for log returns)
+            before taking the loss quantile.
+    """
+    if horizon_days < 1:
+        raise ValueError("horizon_days must be >= 1")
     arr = np.asarray(returns, dtype=float)
-    if arr.size < 2:
-        raise InsufficientHistoryError("historical_simulation requires >= 2 returns")
-    losses = -arr
+    if arr.size < horizon_days + 1:
+        raise InsufficientHistoryError(
+            f"historical_simulation requires >= {horizon_days + 1} returns")
+    if horizon_days == 1:
+        agg = arr
+    else:
+        # Rolling sum of log returns gives the H-period log return.
+        kernel = np.ones(horizon_days)
+        agg = np.convolve(arr, kernel, mode="valid")
+    losses = -agg
     var = float(np.quantile(losses, confidence))
     cvar = float(losses[losses >= var].mean())
-    return VaRResult(var=var, cvar=cvar, confidence=confidence, n_paths=int(arr.size),
-                     horizon_days=1)
+    return VaRResult(var=var, cvar=cvar, confidence=confidence,
+                     n_paths=int(agg.size), horizon_days=horizon_days)

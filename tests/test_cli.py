@@ -69,6 +69,20 @@ class CommandTests(unittest.TestCase):
             self.assertEqual(rc, 0)
             self.assertTrue(out_csv.exists())
 
+    def test_backtest_with_two_workers(self) -> None:
+        # Exercises the multiprocessing path that the README advertises
+        # (``--workers 4``). Catches pickling regressions on macOS / Windows
+        # where the default start method is ``spawn``.
+        with TemporaryDirectory() as tmp:
+            prices_csv = Path(tmp) / "prices.csv"
+            out_csv = Path(tmp) / "metrics.csv"
+            _toy_panel(n_days=400, tickers=("AAA", "BBB", "CCC")).to_csv(prices_csv, index=False)
+            rc = main(["backtest", "--prices", str(prices_csv),
+                       "--workers", "2", "--out", str(out_csv),
+                       "--lookback", "60", "--skip", "5"])
+            self.assertEqual(rc, 0)
+            self.assertTrue(out_csv.exists())
+
     def test_forecast_writes_json(self) -> None:
         with TemporaryDirectory() as tmp:
             prices_csv = Path(tmp) / "prices.csv"
@@ -97,6 +111,25 @@ class CommandTests(unittest.TestCase):
             rc = main(["var", "--prices", str(prices_csv), "--ticker", "AAA",
                        "--paths", "1000", "--horizon", "5", "--workers", "1"])
             self.assertEqual(rc, 0)
+
+    def test_sql_runs_each_query_kind(self) -> None:
+        with TemporaryDirectory() as tmp:
+            prices_csv = Path(tmp) / "prices.csv"
+            _toy_panel(n_days=300).to_csv(prices_csv, index=False)
+            for query in ("rank", "rolling_volume", "momentum"):
+                rc = main(["sql", "--prices", str(prices_csv),
+                           "--query", query, "--limit", "5"])
+                self.assertEqual(rc, 0, msg=f"query={query}")
+
+    def test_invalid_log_level_returns_error(self) -> None:
+        rc = main(["--log-level", "BOGUS", "backtest",
+                   "--prices", "/nonexistent.csv", "--out", "/tmp/x.csv"])
+        self.assertEqual(rc, 2)
+
+    def test_missing_config_file(self) -> None:
+        rc = main(["--config", "/no/such/file.yaml", "backtest",
+                   "--prices", "/nonexistent.csv", "--out", "/tmp/x.csv"])
+        self.assertEqual(rc, 2)
 
     def test_fetch_uses_injected_source(self) -> None:
         with TemporaryDirectory() as tmp:

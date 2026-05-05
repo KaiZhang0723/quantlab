@@ -1,9 +1,11 @@
 # Default configuration for the quantlab CLI.
 #
-# Override on the command line, e.g.:
-#     quantlab --config configs/default.yaml fetch --tickers AAPL --out prices.csv
+# Currently consumed only by the ``fetch`` subcommand:
+#     quantlab --config configs/default.yaml fetch --out reports/sample_prices.csv
 #
-# Any field omitted here must be supplied via CLI flags.
+# Other subcommands (backtest, forecast, var, sql) read all parameters from
+# their CLI flags directly. Override or supply tickers / dates on the command
+# line as needed.
 
 tickers:
   - AAPL
@@ -17,20 +19,5 @@ tickers:
   - PG
   - WMT
 
-start: "2015-01-01"
+start: "2019-01-01"
 end:   "2024-12-31"
-
-backtest:
-  lookback: 252
-  skip: 21
-  workers: 4
-
-forecast:
-  task: classification
-  n_splits: 5
-
-var:
-  confidence: 0.99
-  horizon: 10
-  paths: 50000
-  workers: 4

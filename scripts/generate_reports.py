@@ -78,11 +78,13 @@ def load_panel(args: argparse.Namespace) -> tuple[pd.DataFrame, str]:
         panel = fetch_real_panel()
         REPORTS.mkdir(parents=True, exist_ok=True)
         panel.to_csv(DEFAULT_CSV, index=False)
-        return panel, f"real Yahoo Finance ({DEFAULT_CSV})"
+        return panel, f"real Yahoo Finance via yfinance (cached at reports/{DEFAULT_CSV.name})"
     src_path = args.prices or DEFAULT_CSV
     if src_path.exists():
         panel = pd.read_csv(src_path, parse_dates=["date"])
-        return panel, f"loaded from {src_path}"
+        # Use the bare filename so the committed JSON is reproducible across
+        # machines (and doesn't leak the author's home directory).
+        return panel, f"loaded from reports/{src_path.name}"
     log.info("no CSV at %s; falling back to synthetic panel", src_path)
     return synthetic_panel(), "synthetic GBM panel (no CSV found)"
 
@@ -107,7 +109,11 @@ def run(args: argparse.Namespace) -> None:
     panel = panel.sort_values(["ticker", "date"]).reset_index(drop=True)
     log.info("price panel: %s, %d rows, %d tickers, %d dates",
              label, len(panel), panel["ticker"].nunique(), panel["date"].nunique())
-    if not args.fetch:
+    # Persist the panel only when we just synthesised it from scratch (no
+    # CSV existed). ``--fetch`` already writes inside ``load_panel``;
+    # ``--use-synthetic`` is treated as ephemeral and must not clobber a
+    # committed real-data CSV.
+    if not args.fetch and not args.use_synthetic and not DEFAULT_CSV.exists():
         panel.to_csv(DEFAULT_CSV, index=False)
 
     bt = run_backtest(panel, strategy=lambda d: momentum_strategy(d, lookback=252, skip=21),
@@ -140,7 +146,8 @@ def run(args: argparse.Namespace) -> None:
     mc = monte_carlo_var(mu=float(rets.mean()), sigma=float(rets.std(ddof=1)),
                          horizon_days=10, n_paths=20_000, confidence=0.99,
                          n_workers=1, seed=0)
-    hist = historical_simulation(rets.values, confidence=0.99)
+    # Match the Monte Carlo horizon so the two VaR figures are comparable.
+    hist = historical_simulation(rets.values, confidence=0.99, horizon_days=10)
 
     upper_bound = max_profit_with_fee(apple["close"].tolist(), fee=0.001)
 

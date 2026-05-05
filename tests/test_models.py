@@ -10,8 +10,8 @@ import pandas as pd
 from quantlab.exceptions import InsufficientHistoryError
 from quantlab.models.evaluation import (
     classification_metrics,
+    per_group_metrics,
     regression_metrics,
-    walk_forward_metrics,
 )
 from quantlab.models.features import build_features
 from quantlab.models.forecaster import ReturnForecaster
@@ -119,12 +119,19 @@ class EvaluationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             classification_metrics(pd.Series([0]), pd.Series([0.1, 0.2]))
 
-    def test_walk_forward_metrics_per_group(self) -> None:
+    def test_per_group_metrics(self) -> None:
         y = pd.Series([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
         p = pd.Series([1.1, 1.9, 3.2, 4.1, 4.8, 6.3])
         groups = ["a", "a", "a", "b", "b", "b"]
-        out = walk_forward_metrics(y, p, groups, task="regression")
+        out = per_group_metrics(y, p, groups, task="regression")
         self.assertEqual(set(out["group"]), {"a", "b"})
+        self.assertEqual(out.shape[0], 2)
+
+    def test_per_group_metrics_classification(self) -> None:
+        y = pd.Series([0, 1, 0, 1, 1, 0])
+        p = pd.Series([0.1, 0.9, 0.2, 0.8, 0.7, 0.3])
+        groups = ["a", "a", "a", "b", "b", "b"]
+        out = per_group_metrics(y, p, groups, task="classification")
         self.assertEqual(out.shape[0], 2)
 
 

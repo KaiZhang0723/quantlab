@@ -1,5 +1,5 @@
 {
-  "data_source": "loaded from /Users/k/Library/Mobile Documents/com~apple~CloudDocs/Cornell/Spring 2026/ORIE 5270 Big Data Technologies/quantlab/reports/sample_prices.csv",
+  "data_source": "real Yahoo Finance via yfinance (cached at reports/sample_prices.csv)",
   "n_tickers": 10,
   "n_dates": 1509,
   "date_range": [
@@ -7,30 +7,30 @@
     "2024-12-30 00:00:00"
   ],
   "portfolio": {
-    "sharpe": 0.4093090380916409,
-    "annual_return": 0.11955592279144685,
-    "annual_vol": 0.24070057780142054,
-    "max_drawdown": -0.34278687625361
+    "sharpe": 0.39294679402793,
+    "annual_return": 0.11722124236903837,
+    "annual_vol": 0.24264271627796302,
+    "max_drawdown": -0.3342439432176064
   },
   "aapl_forecast": {
     "task": "classification",
-    "cv_auc_mean": 0.4840323941487023,
+    "cv_auc_mean": 0.4846535930708251,
     "in_sample": {
-      "auc": 0.5433642171942407,
-      "accuracy": 0.5440484196368527
+      "auc": 0.543566266814715,
+      "accuracy": 0.5359784801613988
     }
   },
   "aapl_var_99": {
     "monte_carlo": {
-      "var": 0.12421666394894759,
+      "var": 0.12421666394894758,
       "cvar": 0.14066555411797432,
       "n_paths": 20000
     },
     "historical": {
-      "var": 0.05303267002138031,
-      "cvar": 0.07311023994868177,
-      "n_paths": 1508
+      "var": 0.13376838605759422,
+      "cvar": 0.17193686314388407,
+      "n_paths": 1499
     }
   },
-  "aapl_perfect_foresight_profit_per_share_with_fee_0.001": 1441.6913114013735
+  "aapl_perfect_foresight_profit_per_share_with_fee_0.001": 1441.6913114013732
 }

@@ -38,28 +38,6 @@ class WelfordTests(unittest.TestCase):
         with self.assertRaises(InsufficientHistoryError):
             _ = m.variance
 
-    def test_merge_matches_combined_stream(self) -> None:
-        rng = np.random.default_rng(0)
-        a = rng.normal(size=200).tolist()
-        b = rng.normal(loc=2.0, size=300).tolist()
-        ma, mb = OnlineMoments(), OnlineMoments()
-        ma.update_many(a)
-        mb.update_many(b)
-        merged = OnlineMoments()
-        merged.merge(ma).merge(mb)
-        ref = a + b
-        self.assertAlmostEqual(merged.mean, float(np.mean(ref)), places=10)
-        self.assertAlmostEqual(merged.variance, float(np.var(ref, ddof=1)), places=8)
-
-    def test_merge_handles_empty_sides(self) -> None:
-        m = OnlineMoments()
-        empty = OnlineMoments()
-        m.update_many([1.0, 2.0])
-        m.merge(empty)
-        self.assertEqual(m.n, 2)
-        empty.merge(m)
-        self.assertEqual(empty.n, 2)
-
     @settings(max_examples=50, deadline=None)
     @given(st.lists(st.floats(min_value=-1e3, max_value=1e3, allow_nan=False, allow_infinity=False),
                     min_size=2, max_size=200))

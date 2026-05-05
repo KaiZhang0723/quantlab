@@ -18,14 +18,25 @@ def log_returns(prices: pd.Series) -> pd.Series:
     """Log returns ``log(p_t / p_{t-1})`` of a price series.
 
     The first observation is dropped because it has no predecessor.
+
+    Raises:
+        ValueError: If any price is non-positive (``log`` would be ill-defined).
     """
     if len(prices) < 2:
         raise InsufficientHistoryError("log_returns requires at least 2 prices")
+    if (prices <= 0).any():
+        raise ValueError("log_returns requires strictly positive prices")
     return np.log(prices / prices.shift(1)).dropna()
 
 
 def cumulative_returns(returns: pd.Series) -> pd.Series:
-    """Cumulative growth factor ``exp(cumsum(log_returns))``."""
+    """Cumulative growth factor ``exp(cumsum(returns))``.
+
+    Note: the resulting series is the equity *after* each period, so
+    ``equity[0] = exp(returns[0])``, not ``1.0``. Drawdowns measured from
+    this curve are computed against the running max of the post-trade
+    equity, which is the standard convention.
+    """
     if returns.empty:
         return returns.copy()
     return np.exp(returns.cumsum())
