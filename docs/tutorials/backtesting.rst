@@ -3,8 +3,8 @@ Backtesting
 
 The :mod:`quantlab.compute.backtest` module runs a per-ticker strategy in
 parallel via ``multiprocessing.Pool.map``. The default reference strategy
-is 12-1 cross-sectional momentum (long when the prior 12 months excluding
-the most recent month delivered positive returns).
+is 12-1 *time-series* momentum (per ticker, long when that ticker's prior
+12 months excluding the most recent month delivered positive returns).
 
 CLI
 ---

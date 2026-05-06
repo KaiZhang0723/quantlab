@@ -37,7 +37,8 @@ class YFinanceSource(PriceSource):
         auto_adjust: If ``True``, request split/dividend-adjusted prices.
 
     Example:
-        >>> src = YFinanceSource(downloader=lambda **kw: _fake_yf_response())
+        >>> import pandas as pd
+        >>> src = YFinanceSource(downloader=lambda **kw: pd.DataFrame())
         >>> isinstance(src, YFinanceSource)
         True
     """

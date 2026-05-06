@@ -1,5 +1,5 @@
 {
-  "data_source": "real Yahoo Finance via yfinance (cached at reports/sample_prices.csv)",
+  "data_source": "loaded from reports/sample_prices.csv",
   "n_tickers": 10,
   "n_dates": 1509,
   "date_range": [
@@ -9,8 +9,8 @@
   "portfolio": {
     "sharpe": 0.39294679402793,
     "annual_return": 0.11722124236903837,
-    "annual_vol": 0.24264271627796302,
-    "max_drawdown": -0.3342439432176064
+    "annual_vol": 0.24264271627796297,
+    "max_drawdown": -0.33424394321760637
   },
   "aapl_forecast": {
     "task": "classification",
@@ -22,15 +22,15 @@
   },
   "aapl_var_99": {
     "monte_carlo": {
-      "var": 0.12421666394894758,
-      "cvar": 0.14066555411797432,
+      "var": 0.13263655197888857,
+      "cvar": 0.15174082913431342,
       "n_paths": 20000
     },
     "historical": {
       "var": 0.13376838605759422,
-      "cvar": 0.17193686314388407,
+      "cvar": 0.1719368631438841,
       "n_paths": 1499
     }
   },
-  "aapl_perfect_foresight_profit_per_share_with_fee_0.001": 1441.6913114013732
+  "aapl_perfect_foresight_profit_per_share_with_fee_0.001": 1441.6913114013735
 }

@@ -13,7 +13,7 @@ This is the final-project deliverable for **ORIE 5270 — Big Data Technologies 
 
 ## Research question and headline result
 
-> *Does an equal-weight per-ticker 12-1 time-series momentum strategy on a basket of large-cap U.S. equities deliver positive risk-adjusted returns?*
+> *Does a per-ticker 12-1 time-series momentum strategy deliver positive risk-adjusted returns on a basket of large-cap U.S. equities?*
 
 Run on **real Yahoo Finance daily prices**, 10 large-cap tickers (AAPL, MSFT, GOOGL, AMZN, NVDA, JPM, XOM, JNJ, PG, WMT) over **2019-01-02 → 2024-12-30** (1,509 trading days, 15,090 rows). Reproduce with `python scripts/generate_reports.py --fetch`; the script falls back to a deterministic synthetic GBM panel when offline so tests and CI stay network-free.
 
@@ -23,14 +23,14 @@ Run on **real Yahoo Finance daily prices**, 10 large-cap tickers (AAPL, MSFT, GO
 | Average annualised return | **11.72 %** |
 | Average annualised volatility | **24.26 %** |
 | Average maximum drawdown | **−33.42 %** |
-| AAPL 10-day 99 % VaR — parametric Monte Carlo (20k paths) | **12.42 %** |
+| AAPL 10-day 99 % VaR — parametric Monte Carlo (20k paths) | **13.26 %** |
 | AAPL 10-day 99 % VaR — historical simulation (rolling 10-day returns) | **13.38 %** |
 | AAPL perfect-foresight per-share profit (DP, fee = $0.001/share) | **$1,441.69** |
 | Best per-ticker Sharpe in panel (NVDA) | **1.05** |
 
-Both VaR figures use the same 10-day horizon and 99 % confidence; the historical estimate is modestly higher than the parametric MC because the empirical 10-day-return distribution has fatter left-tails than the GBM fit.
+Both VaR figures use the same 10-day horizon and 99 % confidence and are expressed as log-return losses, so the comparison is unit-consistent. The historical estimate sits ~0.1 pp above the parametric MC, in line with empirical equity returns having marginally fatter left tails than the GBM fit assumes — well within sampling noise on 1499 observations.
 
-![Cumulative returns of the equal-weight 12-1 momentum portfolio](reports/cumulative_returns.png)
+![Cumulative returns of the 12-1 momentum portfolio (buy-and-hold equal allocation across tickers)](reports/cumulative_returns.png)
 
 | Drawdown (underwater) | Daily-return correlations |
 | :---: | :---: |
@@ -90,7 +90,7 @@ The point of the package is to demonstrate the engineering practices taught in O
 
 **Secondary source:** the S&P 500 constituent table on [Wikipedia](https://en.wikipedia.org/wiki/List_of_S%26P_500_companies), parsed with BeautifulSoup. Used to enumerate candidate tickers.
 
-The default config (`configs/default.yaml`) ships with 10 large-cap tickers (AAPL, MSFT, GOOGL, AMZN, NVDA, JPM, XOM, JNJ, PG, WMT) covering Jan 2015 – Dec 2024.
+The default config (`configs/default.yaml`) ships with 10 large-cap tickers (AAPL, MSFT, GOOGL, AMZN, NVDA, JPM, XOM, JNJ, PG, WMT) covering Jan 2019 – Dec 2024.
 
 This package is for educational and research use only. `yfinance` is not affiliated with Yahoo, and any use of Yahoo Finance data is subject to Yahoo's terms.
 
@@ -112,7 +112,7 @@ Verify the install:
 pytest --cov=quantlab
 ```
 
-You should see *109 passed* and *95% coverage*.
+You should see *119 passed* and *95% coverage* (114 unittest tests + 5 doctests inside `src/quantlab`).
 
 ---
 
@@ -190,7 +190,7 @@ These are the trade-offs the package makes deliberately. The full long-form vers
 
 ## Test coverage
 
-Measured by `pytest --cov=quantlab --cov-branch` on the committed test suite (118 tests, all passing offline). `cli.py` is included in the denominator; only `_logging.py` (a thin wrapper around stdlib `logging`) is omitted.
+Measured by `pytest --cov=quantlab --cov-branch` on the committed test suite (119 tests, all passing offline). `cli.py` is included in the denominator; only `_logging.py` (a thin wrapper around stdlib `logging`) is omitted. The CI workflow gates on `--cov-fail-under=85` to absorb small refactors without churning the gate; the figure above (95 %) is the current measurement.
 
 | Module | Line + branch | What's exercised |
 | --- | ---: | --- |

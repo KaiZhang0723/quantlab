@@ -122,7 +122,7 @@ def run(args: argparse.Namespace) -> None:
     metrics.to_csv(REPORTS / "backtest_metrics.csv", index=False)
 
     fig = plot_cumulative_returns(bt.portfolio_equity.rename("portfolio"),
-                                  title="Equal-weight 12-1 momentum portfolio")
+                                  title="12-1 momentum (buy-and-hold equal allocation)")
     fig.savefig(REPORTS / "cumulative_returns.png", dpi=120)
 
     fig = plot_drawdown(bt.portfolio_equity, title="Portfolio drawdown")

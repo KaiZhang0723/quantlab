@@ -45,13 +45,19 @@ def _split_evenly(total: int, parts: int) -> list[int]:
 
 
 def _simulate_chunk(args: tuple[int, float, float, int, int]) -> np.ndarray:
-    """Worker: simulate a chunk of geometric Brownian motion terminal returns."""
+    """Worker: simulate a chunk of GBM terminal H-day log returns.
+
+    Log-return units are used (not simple returns) so the resulting VaR is
+    directly comparable to :func:`historical_simulation`, which works in the
+    same units. A reader who wants a wealth-loss percentage can convert with
+    ``simple_loss = 1 - exp(-log_loss)``.
+    """
     n_paths, mu, sigma, horizon, seed = args
     rng = np.random.default_rng(seed)
     # Terminal log return = sum of horizon iid Normal(mu - 0.5*sigma^2, sigma) per day.
     drift = (mu - 0.5 * sigma * sigma)
     increments = rng.normal(loc=drift, scale=sigma, size=(n_paths, horizon))
-    return np.exp(increments.sum(axis=1)) - 1.0
+    return increments.sum(axis=1)
 
 
 def monte_carlo_var(
@@ -64,6 +70,11 @@ def monte_carlo_var(
     seed: int = 0,
 ) -> VaRResult:
     """Estimate VaR / CVaR by parallel Monte Carlo on a GBM return process.
+
+    The returned VaR / CVaR are expressed as **log-return losses** (i.e.
+    the negative of the terminal H-day log return at the given quantile).
+    This matches :func:`historical_simulation`, so the two estimates can be
+    compared directly.
 
     Args:
         mu: Daily log-return mean.
@@ -105,6 +116,9 @@ def historical_simulation(
     horizon_days: int = 1,
 ) -> VaRResult:
     """Non-parametric VaR / CVaR from an empirical return distribution.
+
+    The returned VaR / CVaR are expressed as **log-return losses**, matching
+    :func:`monte_carlo_var`.
 
     Args:
         returns: One-period (typically daily) log returns.

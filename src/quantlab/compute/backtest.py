@@ -43,7 +43,13 @@ class TickerPnL:
 
 @dataclass
 class BacktestResult:
-    """Aggregate backtest output across all tickers."""
+    """Aggregate backtest output across all tickers.
+
+    ``portfolio_equity`` is the **mean of the per-ticker equity curves**,
+    i.e. the value of an initially equal-allocation buy-and-hold portfolio
+    across the per-ticker strategies (each ticker starts with $1, never
+    rebalanced). It is *not* a daily-rebalanced equal-weight portfolio.
+    """
 
     per_ticker: dict[str, TickerPnL]
     portfolio_equity: pd.Series
